@@ -1,0 +1,79 @@
+* { /* giving the font styles for the app */
+    font-family: Verdana, Lucida Sans, Arial, Helvetica, sans-serif;
+}
+
+body {  /* providing a nice centered style for everything in the body by setting margin as auto */
+    margin: 0px auto;
+    background-color:white;
+}
+.ui-page {
+/*  background: -webkit-linear-gradient(to bottom, #020024 0%,#1e7909 100%); Chrome10-25,Safari5.1-6 */
+/*     background: linear-gradient(to bottom, #020024 0%,#1e7909 100%); W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    background: linear-gradient(45deg, blue, black);
+}
+
+.content-padding { /* main page content styling for padding and margin */
+    margin-top: 16px;
+    margin-bottom: 16px;
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+#map {  /*styling for the map page such as map height, width and alignment */
+       height: 100%;  /* The height is 400 pixels */
+       width: 100%;  /* The width is the width of the web page */
+       align-content: center;
+}
+
+.mainpagebuttons {  /* common style them for all main buttons inside a page */
+/*  background-color:black;  */
+    color:white; /*text color white */
+    background:rgba(0,0,0,0.0);
+}
+
+.backandexit { /* common style themes for all secondary buttons on a page such as back buttons and exit button on main page */
+    background-color: black;
+    background:rgba(0,0,0,0.5);
+}
+
+section {
+   padding: 0 10px 0 10px;
+   height: 100%;
+}
+.thumbnail {
+   height: 300px;
+   width: 200px;
+   background-color: silver;
+   top: 50%;
+   transform: translate3d(0, -50%, 0);
+   position: relative;
+   text-align: center;
+   line-height: 300px;
+}
+.ui-section-active .thumbnail {
+   background-color: black;
+   border: 1px solid cyan;
+}
+
+@media all and (-tizen-geometric-shape: circle) {
+   section {
+      padding: 0;
+      
+   }
+   .thumbnail {
+      height: 200px;
+      width: 200px;
+      border-radius: 50%;
+      background-color: silver;
+      top: 50%;
+      position: relative;
+      text-align: center;
+      color: white;
+      line-height: 200px;
+      transform: scale(0.7) translate3d(0, -60%, 0);
+      transition: transform 300ms;
+   }
+   .ui-section-active .thumbnail {
+      transform: scale(1.1) translate3d(0, -45%, 0);
+   }
+}

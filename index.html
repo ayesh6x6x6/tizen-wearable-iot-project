@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width,user-scalable=no">
+    <title>Circular UI</title>
+
+    <!-- Tizen Advanced UI CSS file import -->
+    <link rel="stylesheet" href="lib/tau/wearable/theme/default/tau.min.css">
+
+    <!-- Tizen Advanced UI Circular Wearable functionalities CSS import -->
+    <link rel="stylesheet" media="all and (-tizen-geometric-shape: circle)" href="lib/tau/wearable/theme/default/tau.circle.min.css">
+
+    <!-- load theme file for your application -->
+    <link rel="stylesheet" href="css/style.css">
+
+    <!-- Font Awesome CSS import for icons -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+    
+        <!-- JQuery import -->
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+    
+
+</head>
+
+<body>
+    <!-- 
+         1. Using Tizen Advanced UI for page navigation, we have
+            5 pages in one index.html file and navigation is as easy as adding the id of each
+            page to the href of the anchor tag buttons. 
+         2. We also use TAU to add some basic ui components.
+         3. In the Google Map page, we use googlemap API to import a map and a local script
+            tag to initialize a map on the same page, the API calls the initMap function in the index.html file.
+         4. We use fontawesome CDN to get some icons as part of our UI.
+     -->
+
+    <div class="ui-page ui-page-active" id="sectionChangerPage" data-enable-page-scroll="false">
+        <div id="sectionChanger" class="ui-content ui-section-changer">
+            <div id="scroller">
+                <section class="ui-section-active">
+                    <div class="thumbnail">
+                        <i class="fas fa-tags"></i>
+                        <a href="#tagpage">View Pins</a>
+                    </div>
+                </section>
+                <section>
+                    <div class="thumbnail">
+                        <i class="fas fa-thumbtack"></i>
+                        <a class="mainpagebuttons" href="#confirmation">Place Pin</a>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    
+        <!-- PLACE PIN CONFIRMATION -->
+    <!-- Asks for confirmation from the user if the location is correct for adding a pin -->
+    <div class="ui-page" id="confirmation">
+        <header>
+            <h2 class="ui-title">Confirm Pin?</h2>
+        </header>
+        <div class="ui-content ui-content-padding">
+            <ul class="ui-listview">
+                <li>
+                    <a class="mainpagebuttons" id="confirm" href="#confirmplacement"><i class="fas fa-tags"></i>Yes</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+    	$("#confirm").click(function(){
+    	console.log('Hello from first line');
+    	client = new Paho.MQTT.Client("broker.hivemq.com", 8000,"web_" + parseInt(Math.random() * 100, 10));
+    	  //Example client = new Paho.MQTT.Client("m11.cloudmqtt.com", 32903, "web_" + parseInt(Math.random() * 100, 10));
+
+    	  // set callback handlers
+    	  client.onConnectionLost = onConnectionLost;
+    	  client.onMessageArrived = onMessageArrived;
+    	  var options = {
+
+    	    onSuccess:onConnect,
+    	    onFailure:doFail
+    	  }
+
+    	  // connect the client
+    	  client.connect(options);
+
+    	  // called when the client connects
+    	  function onConnect() {
+    	    // Once a connection has been made, make a subscription and send a message.
+    	    console.log("onConnect");
+    	    client.subscribe("/cloudmqtt");
+    	    message = new Paho.MQTT.Message("Hello CloudMQTT");
+    	    message.destinationName = "/cloudmqtt";
+    	    client.send(message);
+    	    message2 = new Paho.MQTT.Message(JSON.stringify({lat:25.2531,lng:55.3022}));
+    	    message2.destinationName = "trashmanage/newlitter";
+    	    client.send(message2);
+    	  }
+
+    	  function doFail(e){
+    	    console.log(e);
+    	  }
+
+    	  // called when the client loses its connection
+    	  function onConnectionLost(responseObject) {
+    	    if (responseObject.errorCode !== 0) {
+    	      console.log("onConnectionLost:"+responseObject.errorMessage);
+    	    }
+    	  }
+    	  // called when a message arrives
+		  function onMessageArrived(message) {
+		    console.log("onMessageArrived:"+message.payloadString);
+		  }
+    });
+    </script>
+
+	
+	<!-- Google Map API import -->
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCVQIN5YOSWMv0swZ9J0xLAZKme-i7wx5k" type="text/javascript"></script>
+
+    <!-- MAP PAGE -->
+    <!-- Shows a google map with all previous marked pins, has a script tag in between for the API call -->
+    <div class="ui-page" id="tagpage">
+        <div id="map">
+            <script>
+                function initMap() {	//function to initialize a map
+           		    var aus = {lat: 25.3121, lng: 55.4927};
+            		var map = new google.maps.Map(
+                    document.getElementById('map'), {zoom: 12, center: aus});
+
+            		$.getJSON("http://192.168.1.128:3000/getpins", function(result) {	//JSON GET request to server for pins
+            			$.each(result, function(i,field){
+            				var point = {lat:field.lat,lng:field.lng};
+            				var marker = new google.maps.Marker({position: point, map: map});	//creating a marker for every pin
+            			});
+            		});
+                    
+                }
+                	google.maps.event.addDomListener(window, "load", initMap);	//synchronously load the map
+                	
+            $("#confirm").click(function(){		//add a click listener to confirm pin placemen button
+				$.post("http://192.168.1.128:3000/placepins",{lat:25.2531,lng:55.3022},function(data,status){	//POST request to server
+				console.log(status);
+					//alert('Status'+status);
+					if(status == "success"){	//if successfully saved in the database, reload the map with pins from database
+						initMap();
+					}
+		});
+	});
+            </script>
+        </div>
+        <a href="#sectionChangerPage" class="ui-btn backandexit">Back</a>
+    </div>
+
+
+
+    <!-- Confirmation PAGE -->
+    <!-- Sends a confirmation notification to the user -->
+    <div class="ui-page" id="confirmplacement">
+        <header>
+            <h2 class="ui-title">Pin placed.</h2>
+        </header>
+        <div class="ui-content ui-content-padding">
+            <ul class="ui-listview">
+                <li>
+                    <a class="mainpagebuttons" href="#sectionChangerPage"><i class="far fa-arrow-alt-circle-left"></i>Back</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+    
+    
+    
+    
+
+    <!-- Tizen Advanced UI import for JS files -->
+    <script type="text/javascript" src="lib/tau/wearable/js/tau.min.js"></script>
+
+		    <!-- The overall app.js file import for client side JS -->
+    <script src="app.js"></script>
+
+    <!-- Default js file imports by Tizen Studio template -->
+    <script src="lowBatteryCheck.js"></script>
+    <script src="js/circle-helper.js"></script>
+</body>
+
+</html>
