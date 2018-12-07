@@ -49,10 +49,12 @@ section {
    position: relative;
    text-align: center;
    line-height: 300px;
+   font-size: 20px;
+   
 }
 .ui-section-active .thumbnail {
    background-color: black;
-   border: 1px solid cyan;
+   /*border: 1px solid cyan;*/
 }
 
 @media all and (-tizen-geometric-shape: circle) {
